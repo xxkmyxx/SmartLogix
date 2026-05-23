@@ -1,0 +1,10 @@
+.alerta-banner {
+  background: #FFF3E0;
+  border: 1px solid #FFB74D;
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  color: #E65100;
+  font-size: 14px;
+  font-weight: 500;
+}
