@@ -1,0 +1,67 @@
+REPOSITORIOS SMARTLOGIX - DSY1106 Desarrollo Fullstack III
+Integrantes: Camila Pino, Gonzalo Navarrete, Carla Prado
+
+================================================================
+REPOSITORIO PRINCIPAL
+================================================================
+URL: https://github.com/xxkmyxx/SmartLogix
+Descripción: Repositorio principal del proyecto SmartLogix. Contiene
+todos los componentes del sistema: frontend, backend (microservicios
+y BFF) y arquetipo Maven.
+
+Ramas:
+  - main     → código estable e integrado
+  - camila   → rama de trabajo de Camila Pino
+  - gonzalo  → rama de trabajo de Gonzalo Navarrete
+  - carla    → rama de trabajo de Carla Prado
+
+================================================================
+COMPONENTES BACKEND
+================================================================
+
+MICROSERVICIO AUTH
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/BACKEND/auth
+Descripción: Gestiona autenticación, registro y validación de tokens
+JWT. Implementa control de intentos fallidos y bloqueo de cuenta.
+Puerto: 8081
+
+MICROSERVICIO INVENTARIO
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/BACKEND/inventario
+Descripción: Gestiona el stock de productos por bodega, movimientos
+de entrada/salida y sincronización entre bodegas. Aplica Factory Method
+para la creación de movimientos de stock.
+Puerto: 8082
+
+MICROSERVICIO PEDIDOS
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/BACKEND/pedidos
+Descripción: Gestiona el ciclo de vida de pedidos logísticos. Integra
+Circuit Breaker (Resilience4j) para comunicación con el microservicio
+de inventario.
+Puerto: 8083
+
+BACKEND FOR FRONTEND (BFF)
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/BACKEND/bff
+Descripción: Punto único de entrada para el frontend. Agrega y adapta
+las respuestas de los microservicios, aplica Circuit Breaker y expone
+documentación Swagger.
+Puerto: 8080
+
+================================================================
+FRONTEND
+================================================================
+
+FRONTEND (React + Vite)
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/FRONTEND
+Descripción: Aplicación web desarrollada con React 19 y Vite.
+Incluye módulos de login, dashboard, inventario, pedidos y usuarios.
+Empaquetado como componente NPM (package.json).
+
+================================================================
+ARQUETIPO MAVEN
+================================================================
+
+SMARTLOGIX MICROSERVICE ARCHETYPE
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/ARQUETIPOS/smartlogix-microservice-archetype
+Descripción: Arquetipo Maven personalizado que define la estructura
+base estándar para generar nuevos microservicios SmartLogix. Incluye
+configuración de Spring Boot, seguridad JWT, JPA y pruebas unitarias.
