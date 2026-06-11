@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Inventario from './pages/Inventario/Inventario';
 import Pedidos from './pages/Pedidos/Pedidos';
 import Usuarios from './pages/Usuarios/Usuarios';
+import Envios from './pages/Envios/Envios';
 
 function App() {
   const { token } = useAuth();
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/inventario" element={<PrivateRoute><Inventario /></PrivateRoute>} />
         <Route path="/pedidos" element={<PrivateRoute><Pedidos /></PrivateRoute>} />
+        <Route path="/envios" element={<PrivateRoute><Envios /></PrivateRoute>} />
         <Route path="/usuarios" element={<PrivateRoute roles={['ADMIN']}><Usuarios /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
