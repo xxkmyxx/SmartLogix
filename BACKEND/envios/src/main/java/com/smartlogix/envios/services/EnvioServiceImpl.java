@@ -4,9 +4,7 @@ import com.smartlogix.envios.dto.EnvioRequest;
 import com.smartlogix.envios.dto.EnvioResponse;
 import com.smartlogix.envios.entities.Envio;
 import com.smartlogix.envios.entities.EstadoEnvio;
-import com.smartlogix.envios.entities.Transportista;
 import com.smartlogix.envios.repositories.EnvioRepository;
-import com.smartlogix.envios.repositories.TransportistaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,20 +16,16 @@ import java.util.stream.Collectors;
 public class EnvioServiceImpl implements EnvioService {
 
     private final EnvioRepository envioRepository;
-    private final TransportistaRepository transportistaRepository;
 
     @Override
     public EnvioResponse crear(EnvioRequest request) {
-        Transportista transportista = transportistaRepository.findById(request.getTransportistaId())
-                .orElseThrow(() -> new RuntimeException("Transportista no encontrado con id: " + request.getTransportistaId()));
-
         Envio envio = Envio.builder()
                 .pedidoId(request.getPedidoId())
-                .transportista(transportista)
+                .transportistaId(request.getTransportistaId())
+                .nombreTransportista(request.getNombreTransportista())
                 .fechaEstimada(request.getFechaEstimada())
                 .estado(EstadoEnvio.PENDIENTE)
                 .build();
-
         return toResponse(envioRepository.save(envio));
     }
 
@@ -84,9 +78,8 @@ public class EnvioServiceImpl implements EnvioService {
         return EnvioResponse.builder()
                 .id(envio.getId())
                 .pedidoId(envio.getPedidoId())
-                .transportistaId(envio.getTransportista() != null ? envio.getTransportista().getId() : null)
-                .nombreTransportista(envio.getTransportista() != null ? envio.getTransportista().getNombre() : null)
-                .patenteTransportista(envio.getTransportista() != null ? envio.getTransportista().getPatente() : null)
+                .transportistaId(envio.getTransportistaId())
+                .nombreTransportista(envio.getNombreTransportista())
                 .estado(envio.getEstado())
                 .fechaEstimada(envio.getFechaEstimada())
                 .fechaCreacion(envio.getFechaCreacion())

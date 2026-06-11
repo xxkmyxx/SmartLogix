@@ -8,5 +8,6 @@ import java.time.LocalDate;
 public class EnvioRequest {
     private Long pedidoId;
     private Long transportistaId;
+    private String nombreTransportista;
     private LocalDate fechaEstimada;
 }

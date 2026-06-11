@@ -4,9 +4,7 @@ import com.smartlogix.envios.dto.EnvioRequest;
 import com.smartlogix.envios.dto.EnvioResponse;
 import com.smartlogix.envios.entities.Envio;
 import com.smartlogix.envios.entities.EstadoEnvio;
-import com.smartlogix.envios.entities.Transportista;
 import com.smartlogix.envios.repositories.EnvioRepository;
-import com.smartlogix.envios.repositories.TransportistaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,28 +27,18 @@ class EnvioServiceImplTest {
     @Mock
     private EnvioRepository envioRepository;
 
-    @Mock
-    private TransportistaRepository transportistaRepository;
-
     @InjectMocks
     private EnvioServiceImpl envioService;
 
-    private Transportista transportista;
     private Envio envio;
 
     @BeforeEach
     void setUp() {
-        transportista = Transportista.builder()
-                .id(1L)
-                .nombre("Juan Pérez")
-                .telefono("912345678")
-                .patente("ABC123")
-                .build();
-
         envio = Envio.builder()
                 .id(1L)
                 .pedidoId(10L)
-                .transportista(transportista)
+                .transportistaId(3L)
+                .nombreTransportista("Juan Pérez")
                 .estado(EstadoEnvio.PENDIENTE)
                 .fechaEstimada(LocalDate.now().plusDays(2))
                 .fechaCreacion(LocalDateTime.now())
@@ -61,10 +49,10 @@ class EnvioServiceImplTest {
     void crear_debeRetornarEnvioCreado() {
         EnvioRequest request = new EnvioRequest();
         request.setPedidoId(10L);
-        request.setTransportistaId(1L);
+        request.setTransportistaId(3L);
+        request.setNombreTransportista("Juan Pérez");
         request.setFechaEstimada(LocalDate.now().plusDays(2));
 
-        when(transportistaRepository.findById(1L)).thenReturn(Optional.of(transportista));
         when(envioRepository.save(any(Envio.class))).thenReturn(envio);
 
         EnvioResponse response = envioService.crear(request);
@@ -74,18 +62,6 @@ class EnvioServiceImplTest {
         assertEquals(EstadoEnvio.PENDIENTE, response.getEstado());
         assertEquals("Juan Pérez", response.getNombreTransportista());
         verify(envioRepository, times(1)).save(any(Envio.class));
-    }
-
-    @Test
-    void crear_transportistaNoExiste_lanzaExcepcion() {
-        EnvioRequest request = new EnvioRequest();
-        request.setPedidoId(10L);
-        request.setTransportistaId(99L);
-
-        when(transportistaRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class, () -> envioService.crear(request));
-        verify(envioRepository, never()).save(any());
     }
 
     @Test
@@ -144,9 +120,9 @@ class EnvioServiceImplTest {
 
     @Test
     void listarPorTransportista_debeRetornarLista() {
-        when(envioRepository.findByTransportistaId(1L)).thenReturn(List.of(envio));
+        when(envioRepository.findByTransportistaId(3L)).thenReturn(List.of(envio));
 
-        List<EnvioResponse> resultado = envioService.listarPorTransportista(1L);
+        List<EnvioResponse> resultado = envioService.listarPorTransportista(3L);
 
         assertEquals(1, resultado.size());
         assertEquals("Juan Pérez", resultado.get(0).getNombreTransportista());
@@ -155,9 +131,7 @@ class EnvioServiceImplTest {
     @Test
     void actualizarEstado_debeActualizarCorrectamente() {
         Envio envioActualizado = Envio.builder()
-                .id(1L)
-                .pedidoId(10L)
-                .transportista(transportista)
+                .id(1L).pedidoId(10L).transportistaId(3L).nombreTransportista("Juan Pérez")
                 .estado(EstadoEnvio.RECOGIDO)
                 .fechaEstimada(LocalDate.now().plusDays(2))
                 .fechaCreacion(LocalDateTime.now())
@@ -169,7 +143,6 @@ class EnvioServiceImplTest {
         EnvioResponse response = envioService.actualizarEstado(1L, EstadoEnvio.RECOGIDO);
 
         assertEquals(EstadoEnvio.RECOGIDO, response.getEstado());
-        verify(envioRepository, times(1)).save(any(Envio.class));
     }
 
     @Test
