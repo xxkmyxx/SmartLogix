@@ -14,7 +14,6 @@ const badgeClass = (estado) => ({
 
 export default function Envios() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
   const canCreate = ['ADMIN', 'OPERADOR'].includes(user?.role);
   const canEdit = ['ADMIN', 'OPERADOR', 'TRANSPORTISTA'].includes(user?.role);
 
@@ -25,20 +24,14 @@ export default function Envios() {
   const [loading, setLoading] = useState(true);
 
   const [modal, setModal] = useState(false);
-  const [modalTransportista, setModalTransportista] = useState(false);
   const [form, setForm] = useState({ pedidoId: '', transportistaId: '', fechaEstimada: '' });
-  const [formT, setFormT] = useState({ nombre: '', telefono: '', patente: '' });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
 
   const cargar = async () => {
     try {
-      const [enviosRes, transportistasRes] = await Promise.all([
-        api.get('/api/envios'),
-        api.get('/api/transportistas'),
-      ]);
+      const enviosRes = await api.get('/api/envios');
       setEnvios(enviosRes.data || []);
-      setTransportistas(transportistasRes.data || []);
     } catch {
       setEnvios([]);
     } finally {
@@ -50,9 +43,15 @@ export default function Envios() {
 
   const lista = filtro ? envios.filter((e) => e.estado === filtro) : envios;
 
-  const abrirModal = () => {
+  const abrirModal = async () => {
     setForm({ pedidoId: '', transportistaId: '', fechaEstimada: '' });
     setError('');
+    try {
+      const res = await api.get('/api/usuarios');
+      setTransportistas((res.data || []).filter((u) => u.rol === 'TRANSPORTISTA' && u.activo));
+    } catch {
+      setTransportistas([]);
+    }
     setModal(true);
   };
 
@@ -63,34 +62,18 @@ export default function Envios() {
       return;
     }
     setGuardando(true);
+    const transportistaSeleccionado = transportistas.find((t) => String(t.id) === String(form.transportistaId));
     try {
       await api.post('/api/envios', {
         pedidoId: Number(form.pedidoId),
         transportistaId: Number(form.transportistaId),
+        nombreTransportista: transportistaSeleccionado?.nombre || '',
         fechaEstimada: form.fechaEstimada,
       });
       setModal(false);
       cargar();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear envío');
-    } finally {
-      setGuardando(false);
-    }
-  };
-
-  const guardarTransportista = async () => {
-    setError('');
-    if (!formT.nombre || !formT.telefono || !formT.patente) {
-      setError('Todos los campos son obligatorios');
-      return;
-    }
-    setGuardando(true);
-    try {
-      await api.post('/api/transportistas', formT);
-      setModalTransportista(false);
-      cargar();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Error al registrar transportista');
     } finally {
       setGuardando(false);
     }
@@ -117,11 +100,6 @@ export default function Envios() {
             <option value="">Todos los estados</option>
             {ESTADOS.map((e) => <option key={e} value={e}>{e}</option>)}
           </select>
-          {isAdmin && (
-            <button className="btn-secondary" onClick={() => { setFormT({ nombre: '', telefono: '', patente: '' }); setError(''); setModalTransportista(true); }}>
-              + Transportista
-            </button>
-          )}
           {canCreate && (
             <button className="btn-primary" onClick={abrirModal}>+ Nuevo Envío</button>
           )}
@@ -135,7 +113,6 @@ export default function Envios() {
               <th>ID</th>
               <th>Pedido ID</th>
               <th>Transportista</th>
-              <th>Patente</th>
               <th>Estado</th>
               <th>Fecha Estimada</th>
               {canEdit && <th>Acciones</th>}
@@ -147,7 +124,6 @@ export default function Envios() {
                 <td>{e.id}</td>
                 <td>{e.pedidoId}</td>
                 <td>{e.nombreTransportista || '—'}</td>
-                <td>{e.patenteTransportista || '—'}</td>
                 <td><span className={`badge ${badgeClass(e.estado)}`}>{e.estado}</span></td>
                 <td>{e.fechaEstimada || '—'}</td>
                 {canEdit && (
@@ -156,9 +132,11 @@ export default function Envios() {
                       <div className="flex gap-2">
                         {cambiando === e.id ? (
                           <>
-                            <select style={{ width: 'auto', padding: '4px 8px', fontSize: 12 }}
+                            <select
+                              style={{ width: 'auto', padding: '4px 8px', fontSize: 12 }}
                               defaultValue={e.estado}
-                              onChange={(ev) => cambiarEstado(e.id, ev.target.value)}>
+                              onChange={(ev) => cambiarEstado(e.id, ev.target.value)}
+                            >
                               {ESTADOS.filter((s) => !['ENTREGADO', 'CANCELADO'].includes(s)).map((s) => (
                                 <option key={s} value={s}>{s}</option>
                               ))}
@@ -176,7 +154,7 @@ export default function Envios() {
             ))}
             {lista.length === 0 && (
               <tr>
-                <td colSpan={canEdit ? 7 : 6} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={canEdit ? 6 : 5} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
                   Sin envíos
                 </td>
               </tr>
@@ -190,42 +168,35 @@ export default function Envios() {
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <h2 style={{ marginBottom: 20 }}>Nuevo Envío</h2>
             <label>ID del Pedido *</label>
-            <input type="number" value={form.pedidoId} onChange={(e) => setForm({ ...form, pedidoId: e.target.value })} placeholder="Ej: 1" />
+            <input
+              type="number"
+              value={form.pedidoId}
+              onChange={(e) => setForm({ ...form, pedidoId: e.target.value })}
+              placeholder="Ej: 1"
+            />
             <label style={{ marginTop: 12 }}>Transportista *</label>
             <select value={form.transportistaId} onChange={(e) => setForm({ ...form, transportistaId: e.target.value })}>
               <option value="">Seleccionar...</option>
               {transportistas.map((t) => (
-                <option key={t.id} value={t.id}>{t.nombre} — {t.patente}</option>
+                <option key={t.id} value={t.id}>{t.nombre} — {t.email}</option>
               ))}
             </select>
+            {transportistas.length === 0 && (
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                No hay transportistas activos. Créalos en la sección Usuarios.
+              </p>
+            )}
             <label style={{ marginTop: 12 }}>Fecha estimada de entrega *</label>
-            <input type="date" value={form.fechaEstimada} onChange={(e) => setForm({ ...form, fechaEstimada: e.target.value })} />
+            <input
+              type="date"
+              value={form.fechaEstimada}
+              onChange={(e) => setForm({ ...form, fechaEstimada: e.target.value })}
+            />
             {error && <p style={{ color: 'var(--danger)', marginTop: 8 }}>{error}</p>}
             <div className="flex gap-2" style={{ marginTop: 20, justifyContent: 'flex-end' }}>
               <button className="btn-secondary" onClick={() => setModal(false)}>Cancelar</button>
               <button className="btn-primary" onClick={guardarEnvio} disabled={guardando}>
                 {guardando ? 'Guardando...' : 'Guardar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {modalTransportista && (
-        <div className="modal-overlay" onClick={() => setModalTransportista(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-            <h2 style={{ marginBottom: 20 }}>Registrar Transportista</h2>
-            <label>Nombre *</label>
-            <input value={formT.nombre} onChange={(e) => setFormT({ ...formT, nombre: e.target.value })} placeholder="Nombre completo" />
-            <label style={{ marginTop: 12 }}>Teléfono *</label>
-            <input value={formT.telefono} onChange={(e) => setFormT({ ...formT, telefono: e.target.value })} placeholder="912345678" />
-            <label style={{ marginTop: 12 }}>Patente *</label>
-            <input value={formT.patente} onChange={(e) => setFormT({ ...formT, patente: e.target.value })} placeholder="ABC123" maxLength={10} />
-            {error && <p style={{ color: 'var(--danger)', marginTop: 8 }}>{error}</p>}
-            <div className="flex gap-2" style={{ marginTop: 20, justifyContent: 'flex-end' }}>
-              <button className="btn-secondary" onClick={() => setModalTransportista(false)}>Cancelar</button>
-              <button className="btn-primary" onClick={guardarTransportista} disabled={guardando}>
-                {guardando ? 'Guardando...' : 'Registrar'}
               </button>
             </div>
           </div>
