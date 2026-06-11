@@ -43,6 +43,16 @@ public class EnvioController {
         return ResponseEntity.ok(envioService.buscarPorId(id));
     }
 
+    @GetMapping("/public/pedido/{pedidoId}")
+    @Operation(summary = "Buscar envío por ID de pedido (público, sin autenticación)")
+    public ResponseEntity<?> buscarPorPedidoPublico(@PathVariable Long pedidoId) {
+        try {
+            return ResponseEntity.ok(envioService.buscarPorPedidoId(pedidoId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(null);
+        }
+    }
+
     @GetMapping("/pedido/{pedidoId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'OPERADOR', 'TRANSPORTISTA')")
     @Operation(summary = "Buscar envío por ID de pedido")

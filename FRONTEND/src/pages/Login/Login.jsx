@@ -61,6 +61,9 @@ export default function Login() {
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
+        <a href="/seguimiento" className="seguimiento-link">
+          ¿Quieres rastrear tu pedido? Haz clic aquí
+        </a>
       </div>
     </div>
   );

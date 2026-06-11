@@ -22,3 +22,13 @@
 
 .login-card form { text-align: left; }
 .login-btn { width: 100%; margin-top: 8px; padding: 12px; font-size: 15px; }
+
+.seguimiento-link {
+  display: block;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+  opacity: 0.8;
+}
+.seguimiento-link:hover { opacity: 1; text-decoration: underline; }
