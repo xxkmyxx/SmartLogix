@@ -42,6 +42,17 @@ public class PedidoController {
         }
     }
 
+    @GetMapping("/public/numero/{numeroPedido}")
+    @Operation(summary = "Buscar pedido por número (público, sin autenticación)")
+    public ResponseEntity<?> buscarPorNumeroPublico(@PathVariable String numeroPedido) {
+        try {
+            return ResponseEntity.ok(pedidoService.buscarPorNumeroPedido(numeroPedido));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/numero/{numeroPedido}")
     @PreAuthorize("hasAnyRole('ADMIN', 'OPERADOR', 'TRANSPORTISTA')")
     @Operation(summary = "Buscar pedido por número")

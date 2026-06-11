@@ -8,6 +8,7 @@ import Inventario from './pages/Inventario/Inventario';
 import Pedidos from './pages/Pedidos/Pedidos';
 import Usuarios from './pages/Usuarios/Usuarios';
 import Envios from './pages/Envios/Envios';
+import Seguimiento from './pages/Seguimiento/Seguimiento';
 
 function App() {
   const { token } = useAuth();
@@ -16,6 +17,7 @@ function App() {
     <>
       {token && <Navbar />}
       <Routes>
+        <Route path="/seguimiento" element={<Seguimiento />} />
         <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />
         <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/inventario" element={<PrivateRoute><Inventario /></PrivateRoute>} />
