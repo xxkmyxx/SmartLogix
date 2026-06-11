@@ -14,6 +14,7 @@ export default function Navbar() {
           <NavLink to="/inventario">Inventario</NavLink>
         )}
         <NavLink to="/pedidos">Pedidos</NavLink>
+        <NavLink to="/envios">Envíos</NavLink>
         {user?.role === 'ADMIN' && (
           <NavLink to="/usuarios">Usuarios</NavLink>
         )}

@@ -39,12 +39,19 @@ Circuit Breaker (Resilience4j) para comunicación con el microservicio
 de inventario.
 Puerto: 8083
 
+MICROSERVICIO ENVÍOS
+URL: https://github.com/xxkmyxx/SmartLogix/tree/main/BACKEND/envios
+Descripción: Gestiona el ciclo de vida de los envíos logísticos y la
+asignación de transportistas. Permite seguimiento de estado desde
+PENDIENTE hasta ENTREGADO. BD independiente por microservicio (SRS RNF06).
+Puerto: 8085
+
 BACKEND FOR FRONTEND (BFF)
 URL: https://github.com/xxkmyxx/SmartLogix/tree/main/BACKEND/bff
 Descripción: Punto único de entrada para el frontend. Agrega y adapta
 las respuestas de los microservicios, aplica Circuit Breaker y expone
 documentación Swagger.
-Puerto: 8080
+Puerto: 8084
 
 ================================================================
 FRONTEND
