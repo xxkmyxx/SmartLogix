@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,7 +44,19 @@ public class InventarioClientService {
 
     public Integer stockFallback(Long productoId, Throwable t) {
         log.warn("Circuit Breaker activo para inventario. productoId={}, causa={}", productoId, t.getMessage());
-        // Fallback conservador: reportar sin stock para no confirmar pedidos sin verificar
         return -1;
+    }
+
+    @CircuitBreaker(name = CB_NAME, fallbackMethod = "ajusteFallback")
+    public boolean ajustarStock(Long productoId, int delta) {
+        String url = inventarioUrl + "/api/inventario/stock/interno/ajuste";
+        Map<String, Object> body = Map.of("productoId", productoId, "delta", delta);
+        ResponseEntity<Map> response = restTemplate.postForEntity(url, body, Map.class);
+        return response.getStatusCode().is2xxSuccessful();
+    }
+
+    public boolean ajusteFallback(Long productoId, int delta, Throwable t) {
+        log.warn("Circuit Breaker activo al ajustar stock. productoId={}, delta={}, causa={}", productoId, delta, t.getMessage());
+        return false;
     }
 }

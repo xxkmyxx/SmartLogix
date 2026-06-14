@@ -13,6 +13,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.stream.Collectors;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +28,15 @@ public class ProductoController {
 
     public ProductoController(ProductoService productoService) {
         this.productoService = productoService;
+    }
+
+    @Operation(summary = "Catálogo público de productos disponibles (portal cliente, sin autenticación)")
+    @GetMapping("/public/productos")
+    public ResponseEntity<List<Producto>> catalogoPublico() {
+        List<Producto> disponibles = productoService.findAll().stream()
+                .filter(p -> p.getActivo() && p.getStockActual() > 0)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(disponibles);
     }
 
     @Operation(summary = "Listar productos con niveles de stock")
@@ -108,6 +119,19 @@ public class ProductoController {
         return productoService.findById(id)
                 .map(p -> ResponseEntity.ok(Map.of("stockTotal", p.getStockActual())))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Ajuste de stock interno (uso exclusivo entre microservicios)")
+    @PostMapping("/stock/interno/ajuste")
+    public ResponseEntity<?> ajusteInterno(@RequestBody Map<String, Object> body) {
+        try {
+            Long productoId = ((Number) body.get("productoId")).longValue();
+            int delta = ((Number) body.get("delta")).intValue();
+            productoService.ajustarStockInterno(productoId, delta);
+            return ResponseEntity.ok(Map.of("ok", true));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @Operation(summary = "Historial de movimientos de stock por producto")

@@ -54,6 +54,25 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register-cliente")
+    @Operation(summary = "Auto-registro de cliente en el portal (público, sin autenticación)")
+    public ResponseEntity<?> registerCliente(@RequestBody RegisterRequest request) {
+        try {
+            request.setRol("CLIENTE");
+            Usuario usuario = authService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of(
+                        "id", usuario.getId(),
+                        "email", usuario.getEmail(),
+                        "nombre", usuario.getNombre(),
+                        "rol", usuario.getRol()
+                    ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/validate")
     @Operation(summary = "Validar si un token JWT es válido")
     public ResponseEntity<Map<String, Boolean>> validate(

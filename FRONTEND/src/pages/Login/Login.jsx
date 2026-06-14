@@ -64,6 +64,9 @@ export default function Login() {
         <a href="/seguimiento" className="seguimiento-link">
           ¿Quieres rastrear tu pedido? Haz clic aquí
         </a>
+        <a href="/portal" className="seguimiento-link" style={{ marginTop: 6 }}>
+          ¿Eres cliente? Accede al portal →
+        </a>
       </div>
     </div>
   );
