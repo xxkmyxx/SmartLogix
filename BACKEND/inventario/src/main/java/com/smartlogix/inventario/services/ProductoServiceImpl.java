@@ -129,4 +129,17 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + productoId));
         return movimientoRepository.findByProductoOrderByFechaMovimientoDesc(producto);
     }
+
+    @Override
+    @Transactional
+    public void ajustarStockInterno(Long productoId, int delta) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + productoId));
+        int nuevoStock = producto.getStockActual() + delta;
+        if (nuevoStock < 0) {
+            throw new RuntimeException("Stock insuficiente para el producto: " + productoId);
+        }
+        producto.setStockActual(nuevoStock);
+        productoRepository.save(producto);
+    }
 }

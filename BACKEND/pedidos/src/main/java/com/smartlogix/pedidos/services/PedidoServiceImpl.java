@@ -73,7 +73,14 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setTotal(total);
         pedido.setDetalles(detalles);
 
-        return toResponse(pedidoRepository.save(pedido));
+        Pedido guardado = pedidoRepository.save(pedido);
+
+        // Descontar stock por cada producto del pedido
+        for (DetallePedidoRequest dr : request.getDetalles()) {
+            inventarioClient.ajustarStock(dr.getProductoId(), -dr.getCantidad());
+        }
+
+        return toResponse(guardado);
     }
 
     @Override
@@ -136,9 +143,17 @@ public class PedidoServiceImpl implements PedidoService {
         if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
             throw new RuntimeException("No se puede cancelar un pedido ya entregado.");
         }
+        if (pedido.getEstado() == EstadoPedido.CANCELADO) {
+            throw new RuntimeException("El pedido ya está cancelado.");
+        }
 
         pedido.setEstado(EstadoPedido.CANCELADO);
         pedidoRepository.save(pedido);
+
+        // Reponer stock al cancelar
+        for (DetallePedido d : pedido.getDetalles()) {
+            inventarioClient.ajustarStock(d.getProductoId(), d.getCantidad());
+        }
     }
 
     private String generarNumeroPedido() {

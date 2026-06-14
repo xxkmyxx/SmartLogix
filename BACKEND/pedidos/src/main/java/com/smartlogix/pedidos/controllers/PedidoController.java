@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -79,8 +80,15 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.listarPorEstado(estado));
     }
 
+    @GetMapping("/mis-pedidos")
+    @PreAuthorize("hasRole('CLIENTE')")
+    @Operation(summary = "Listar pedidos del cliente autenticado (portal B2B)")
+    public ResponseEntity<List<PedidoResponse>> misPedidos(Authentication auth) {
+        return ResponseEntity.ok(pedidoService.listarPorCliente(auth.getName()));
+    }
+
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'OPERADOR')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERADOR', 'CLIENTE')")
     @Operation(summary = "Crear nuevo pedido (verifica stock vía Circuit Breaker)")
     public ResponseEntity<?> crear(@RequestBody PedidoRequest request) {
         try {

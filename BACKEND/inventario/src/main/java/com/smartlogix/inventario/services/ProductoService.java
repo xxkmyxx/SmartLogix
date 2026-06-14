@@ -27,4 +27,6 @@ public interface ProductoService {
                              String motivo, String usuarioResponsable);
 
     List<MovimientoStock> historialMovimientos(Long productoId);
+
+    void ajustarStockInterno(Long productoId, int delta);
 }
