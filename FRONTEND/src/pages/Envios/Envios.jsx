@@ -15,10 +15,11 @@ const badgeClass = (estado) => ({
 export default function Envios() {
   const { user } = useAuth();
   const canCreate = ['ADMIN', 'OPERADOR'].includes(user?.role);
-  const canEdit = ['ADMIN', 'OPERADOR', 'TRANSPORTISTA'].includes(user?.role);
+  const canEdit = user?.role === 'TRANSPORTISTA';
 
   const [envios, setEnvios] = useState([]);
   const [transportistas, setTransportistas] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [filtro, setFiltro] = useState('');
   const [cambiando, setCambiando] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,8 +31,11 @@ export default function Envios() {
 
   const cargar = async () => {
     try {
-      const enviosRes = await api.get('/api/envios');
-      setEnvios(enviosRes.data || []);
+      const url = user?.role === 'TRANSPORTISTA'
+        ? `/api/envios/transportista/${user.userId}`
+        : '/api/envios';
+      const res = await api.get(url);
+      setEnvios(res.data || []);
     } catch {
       setEnvios([]);
     } finally {
@@ -47,10 +51,18 @@ export default function Envios() {
     setForm({ pedidoId: '', transportistaId: '', fechaEstimada: '' });
     setError('');
     try {
-      const res = await api.get('/api/usuarios');
-      setTransportistas((res.data || []).filter((u) => u.rol === 'TRANSPORTISTA' && u.activo));
+      const [resUsuarios, resPedidos] = await Promise.all([
+        api.get('/api/usuarios'),
+        api.get('/api/pedidos'),
+      ]);
+      setTransportistas((resUsuarios.data || []).filter((u) => u.rol === 'TRANSPORTISTA' && u.activo));
+      const pedidosDisponibles = (resPedidos.data || []).filter(
+        (p) => p.estado === 'PENDIENTE'
+      );
+      setPedidos(pedidosDisponibles);
     } catch {
       setTransportistas([]);
+      setPedidos([]);
     }
     setModal(true);
   };
@@ -63,9 +75,11 @@ export default function Envios() {
     }
     setGuardando(true);
     const transportistaSeleccionado = transportistas.find((t) => String(t.id) === String(form.transportistaId));
+    const pedidoSeleccionado = pedidos.find((p) => String(p.id) === String(form.pedidoId));
     try {
       await api.post('/api/envios', {
         pedidoId: Number(form.pedidoId),
+        numeroPedido: pedidoSeleccionado?.numeroPedido || '',
         transportistaId: Number(form.transportistaId),
         nombreTransportista: transportistaSeleccionado?.nombre || '',
         fechaEstimada: form.fechaEstimada,
@@ -73,15 +87,19 @@ export default function Envios() {
       setModal(false);
       cargar();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al crear envío');
+      setError(err.response?.data?.error || err.response?.data?.message || err.response?.data?.detail || 'Error al crear envío');
     } finally {
       setGuardando(false);
     }
   };
 
   const cambiarEstado = async (id, nuevoEstado) => {
+    const envio = envios.find((e) => e.id === id);
     try {
       await api.put(`/api/envios/${id}/estado?estado=${nuevoEstado}`);
+      if (nuevoEstado === 'ENTREGADO' && envio?.pedidoId) {
+        await api.put(`/api/pedidos/${envio.pedidoId}/estado?nuevoEstado=ENTREGADO`);
+      }
       setCambiando(null);
       cargar();
     } catch (err) {
@@ -111,7 +129,7 @@ export default function Envios() {
           <thead>
             <tr>
               <th>ID</th>
-              <th>Pedido ID</th>
+              <th>Pedido</th>
               <th>Transportista</th>
               <th>Estado</th>
               <th>Fecha Estimada</th>
@@ -122,7 +140,7 @@ export default function Envios() {
             {lista.map((e) => (
               <tr key={e.id}>
                 <td>{e.id}</td>
-                <td>{e.pedidoId}</td>
+                <td>{e.numeroPedido || `PED-${String(e.pedidoId).padStart(5, '0')}`}</td>
                 <td>{e.nombreTransportista || '—'}</td>
                 <td><span className={`badge ${badgeClass(e.estado)}`}>{e.estado}</span></td>
                 <td>{e.fechaEstimada || '—'}</td>
@@ -137,7 +155,7 @@ export default function Envios() {
                               defaultValue={e.estado}
                               onChange={(ev) => cambiarEstado(e.id, ev.target.value)}
                             >
-                              {ESTADOS.filter((s) => !['ENTREGADO', 'CANCELADO'].includes(s)).map((s) => (
+                              {ESTADOS.map((s) => (
                                 <option key={s} value={s}>{s}</option>
                               ))}
                             </select>
@@ -167,13 +185,20 @@ export default function Envios() {
         <div className="modal-overlay" onClick={() => setModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
             <h2 style={{ marginBottom: 20 }}>Nuevo Envío</h2>
-            <label>ID del Pedido *</label>
-            <input
-              type="number"
-              value={form.pedidoId}
-              onChange={(e) => setForm({ ...form, pedidoId: e.target.value })}
-              placeholder="Ej: 1"
-            />
+            <label>Pedido *</label>
+            <select value={form.pedidoId} onChange={(e) => setForm({ ...form, pedidoId: e.target.value })}>
+              <option value="">Seleccionar pedido...</option>
+              {pedidos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.numeroPedido} — {p.clienteNombre || p.clienteEmail} ({p.estado})
+                </option>
+              ))}
+            </select>
+            {pedidos.length === 0 && (
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                No hay pedidos disponibles.
+              </p>
+            )}
             <label style={{ marginTop: 12 }}>Transportista *</label>
             <select value={form.transportistaId} onChange={(e) => setForm({ ...form, transportistaId: e.target.value })}>
               <option value="">Seleccionar...</option>
@@ -190,6 +215,7 @@ export default function Envios() {
             <input
               type="date"
               value={form.fechaEstimada}
+              min={new Date().toISOString().split('T')[0]}
               onChange={(e) => setForm({ ...form, fechaEstimada: e.target.value })}
             />
             {error && <p style={{ color: 'var(--danger)', marginTop: 8 }}>{error}</p>}

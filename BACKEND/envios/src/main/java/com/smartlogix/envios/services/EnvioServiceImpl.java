@@ -21,6 +21,7 @@ public class EnvioServiceImpl implements EnvioService {
     public EnvioResponse crear(EnvioRequest request) {
         Envio envio = Envio.builder()
                 .pedidoId(request.getPedidoId())
+                .numeroPedido(request.getNumeroPedido())
                 .transportistaId(request.getTransportistaId())
                 .nombreTransportista(request.getNombreTransportista())
                 .fechaEstimada(request.getFechaEstimada())
@@ -78,6 +79,7 @@ public class EnvioServiceImpl implements EnvioService {
         return EnvioResponse.builder()
                 .id(envio.getId())
                 .pedidoId(envio.getPedidoId())
+                .numeroPedido(envio.getNumeroPedido())
                 .transportistaId(envio.getTransportistaId())
                 .nombreTransportista(envio.getNombreTransportista())
                 .estado(envio.getEstado())

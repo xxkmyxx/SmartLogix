@@ -26,19 +26,28 @@ export default function PortalMisPedidos() {
   const [error, setError]       = useState('');
   const [abierto, setAbierto]   = useState(null);
 
-  useEffect(() => {
+  const cargar = () => {
+    setCargando(true);
+    setError('');
     portalApi.get('/api/pedidos/mis-pedidos')
       .then((res) => setPedidos(res.data))
       .catch(() => setError('No se pudieron cargar tus pedidos.'))
       .finally(() => setCargando(false));
-  }, []);
+  };
+
+  useEffect(() => { cargar(); }, []);
 
   if (cargando) return <p className="mispedidos-msg">Cargando pedidos...</p>;
   if (error)    return <p className="mispedidos-msg mispedidos-error">{error}</p>;
 
   return (
     <div className="mispedidos-page">
-      <h2 className="mispedidos-titulo">Mis pedidos</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <h2 className="mispedidos-titulo" style={{ margin: 0 }}>Mis pedidos</h2>
+        <button onClick={cargar} disabled={cargando} className="btn-detalle">
+          {cargando ? 'Actualizando...' : '↻ Actualizar'}
+        </button>
+      </div>
 
       {pedidos.length === 0 ? (
         <p className="mispedidos-msg">Aún no tienes pedidos. Ve al catálogo para hacer el primero.</p>
@@ -69,26 +78,28 @@ export default function PortalMisPedidos() {
 
               {abierto === p.id && (
                 <div className="mispedidos-detalle">
-                  <table className="detalle-tabla">
-                    <thead>
-                      <tr>
-                        <th>Producto</th>
-                        <th>Cant.</th>
-                        <th>Precio unit.</th>
-                        <th>Subtotal</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {p.detalles?.map((d, i) => (
-                        <tr key={i}>
-                          <td>{d.productoNombre}</td>
-                          <td>{d.cantidad}</td>
-                          <td>${d.precioUnitario?.toLocaleString('es-CL')}</td>
-                          <td>${d.subtotal?.toLocaleString('es-CL')}</td>
+                  <div className="detalle-tabla-wrapper">
+                    <table className="detalle-tabla">
+                      <thead>
+                        <tr>
+                          <th>Producto</th>
+                          <th>Cant.</th>
+                          <th>Precio unit.</th>
+                          <th>Subtotal</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {p.detalles?.map((d, i) => (
+                          <tr key={i}>
+                            <td>{d.productoNombre}</td>
+                            <td>{d.cantidad}</td>
+                            <td>${d.precioUnitario?.toLocaleString('es-CL')}</td>
+                            <td>${d.subtotal?.toLocaleString('es-CL')}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>

@@ -77,7 +77,7 @@ class AuthServiceImplTest {
 
         when(usuarioRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(usuarioActivo));
         when(passwordEncoder.matches(request.getContrasena(), usuarioActivo.getContrasena())).thenReturn(true);
-        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("jwt-token-generado");
+        when(jwtUtils.generateToken(anyString(), anyString(), anyLong())).thenReturn("jwt-token-generado");
         when(jwtProperties.getPrefix()).thenReturn("Bearer");
         when(jwtProperties.getExpiration()).thenReturn(86400000L);
 
@@ -151,7 +151,7 @@ class AuthServiceImplTest {
         LoginRequest request = loginRequest("camila@smartlogix.cl", "password123");
         when(usuarioRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(usuarioActivo));
         when(passwordEncoder.matches(request.getContrasena(), usuarioActivo.getContrasena())).thenReturn(true);
-        when(jwtUtils.generateToken(anyString(), anyString())).thenReturn("token-ok");
+        when(jwtUtils.generateToken(anyString(), anyString(), anyLong())).thenReturn("token-ok");
         when(jwtProperties.getPrefix()).thenReturn("Bearer");
         when(jwtProperties.getExpiration()).thenReturn(86400000L);
 

@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         usuario.setFechaBloqueo(null);
         usuarioRepository.save(usuario);
 
-        String token = jwtUtils.generateToken(usuario.getEmail(), usuario.getRol());
+        String token = jwtUtils.generateToken(usuario.getEmail(), usuario.getRol(), usuario.getId());
 
         return LoginResponse.builder()
                 .token(token)

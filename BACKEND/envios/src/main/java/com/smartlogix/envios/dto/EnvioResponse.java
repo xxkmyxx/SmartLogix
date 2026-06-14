@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class EnvioResponse {
     private Long id;
     private Long pedidoId;
+    private String numeroPedido;
     private Long transportistaId;
     private String nombreTransportista;
     private String patenteTransportista;

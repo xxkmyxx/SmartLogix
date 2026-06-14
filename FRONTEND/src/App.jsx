@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { PortalAuthProvider } from './context/PortalAuthContext';
 import Navbar from './components/Navbar/Navbar';
@@ -19,10 +19,12 @@ import PortalMisPedidos from './pages/Portal/PortalMisPedidos';
 
 function App() {
   const { token } = useAuth();
+  const location = useLocation();
+  const isPortal = location.pathname.startsWith('/portal') || location.pathname === '/seguimiento';
 
   return (
     <>
-      {token && <Navbar />}
+      {token && !isPortal && <Navbar />}
       <Routes>
         <Route path="/seguimiento" element={<Seguimiento />} />
         <Route path="/login" element={token ? <Navigate to="/" /> : <Login />} />

@@ -17,6 +17,10 @@ export default function Login() {
     setLoading(true);
     try {
       const { data } = await api.post('/api/auth/login', form);
+      if (data.rol === 'CLIENTE') {
+        setError('Acceso denegado. Los clientes deben ingresar por el portal.');
+        return;
+      }
       login(data.token);
       navigate('/');
     } catch (err) {

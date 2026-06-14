@@ -18,7 +18,7 @@ const detalleVacio = () => ({ productoId: '', productoCodigo: '', productoNombre
 export default function Pedidos() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
-  const canEdit = ['ADMIN', 'OPERADOR', 'TRANSPORTISTA'].includes(user?.role);
+  const canEdit = ['ADMIN', 'OPERADOR'].includes(user?.role);
   const canCreate = ['ADMIN', 'OPERADOR'].includes(user?.role);
 
   const [pedidos, setPedidos] = useState([]);

@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -52,7 +50,7 @@ public class SeguimientoController {
                     .numeroPedido(pedido.get("numeroPedido").asText())
                     .clienteNombre(pedido.get("clienteNombre").asText())
                     .estadoPedido(pedido.get("estado").asText())
-                    .fechaCreacion(LocalDateTime.parse(pedido.get("fechaCreacion").asText()))
+                    .fechaCreacion(pedido.get("fechaCreacion").asText())
                     .total(pedido.get("total").asDouble());
 
             try {
@@ -67,7 +65,7 @@ public class SeguimientoController {
                            .nombreTransportista(envio.get("nombreTransportista").asText("—"));
 
                     if (!envio.get("fechaEstimada").isNull()) {
-                        builder.fechaEstimada(LocalDate.parse(envio.get("fechaEstimada").asText()));
+                        builder.fechaEstimada(envio.get("fechaEstimada").asText());
                     }
                 }
             } catch (Exception ignored) {

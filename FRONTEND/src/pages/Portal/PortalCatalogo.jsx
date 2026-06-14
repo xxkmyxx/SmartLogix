@@ -12,12 +12,14 @@ export default function PortalCatalogo() {
   const [exito, setExito] = useState(null);
   const [errorPedido, setErrorPedido] = useState('');
 
-  useEffect(() => {
+  const cargarProductos = () => {
     portalApi.get('/api/inventario/public/productos')
       .then((res) => setProductos(res.data))
       .catch(() => setProductos([]))
       .finally(() => setCargando(false));
-  }, []);
+  };
+
+  useEffect(() => { cargarProductos(); }, []);
 
   const agregar = (p) => setCarrito((c) => ({ ...c, [p.id]: { ...p, cantidad: (c[p.id]?.cantidad || 0) + 1 } }));
   const quitar  = (id) => setCarrito((c) => {
@@ -49,6 +51,7 @@ export default function PortalCatalogo() {
       });
       setExito(data.numeroPedido);
       setCarrito({});
+      cargarProductos();
     } catch (err) {
       setErrorPedido(err.response?.data?.error || 'Error al confirmar el pedido.');
     } finally {
@@ -63,8 +66,7 @@ export default function PortalCatalogo() {
 
         {exito && (
           <div className="catalogo-exito">
-            Pedido creado: <strong>{exito}</strong>. Puedes rastrearlo en{' '}
-            <a href="/seguimiento">seguimiento</a>.
+            <span>Pedido creado: <strong>{exito}</strong>. Puedes rastrearlo en <a href="/seguimiento">seguimiento</a>.</span>
             <button onClick={() => setExito(null)}>Cerrar</button>
           </div>
         )}
