@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 import './Dashboard.css';
 
 const StatCard = ({ label, value, color }) => (
@@ -10,6 +11,8 @@ const StatCard = ({ label, value, color }) => (
 );
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const esTransportista = user?.role === 'TRANSPORTISTA';
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -26,8 +29,8 @@ export default function Dashboard() {
       {data && (
         <>
           <div className="stats-grid">
-            <StatCard label="Productos en inventario" value={data.totalProductos} color="#8B4513" />
-            <StatCard label="Alertas de stock bajo" value={data.alertasStock} color="#C62828" />
+            {!esTransportista && <StatCard label="Productos en inventario" value={data.totalProductos} color="#8B4513" />}
+            {!esTransportista && <StatCard label="Alertas de stock bajo" value={data.alertasStock} color="#C62828" />}
             <StatCard label="Total de pedidos" value={data.totalPedidos} color="#1565C0" />
             <StatCard label="Pedidos pendientes" value={data.pedidosPendientes} color="#E65100" />
             <StatCard label="En tránsito" value={data.pedidosEnTransito} color="#6A1B9A" />

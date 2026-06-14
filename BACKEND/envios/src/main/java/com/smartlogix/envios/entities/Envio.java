@@ -24,6 +24,9 @@ public class Envio {
     @Column(nullable = false)
     private Long transportistaId;
 
+    @Column(length = 20)
+    private String numeroPedido;
+
     @Column(length = 100)
     private String nombreTransportista;
 

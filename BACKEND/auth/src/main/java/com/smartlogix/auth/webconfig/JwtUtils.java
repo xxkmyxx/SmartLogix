@@ -15,11 +15,12 @@ public class JwtUtils {
     @Autowired
     private JwtProperties jwtProperties;
 
-    public String generateToken(String email, String rol) {
+    public String generateToken(String email, String rol, Long userId) {
         Algorithm algorithm = Algorithm.HMAC256(jwtProperties.getSecret());
         return JWT.create()
                 .withSubject(email)
                 .withClaim("role", rol)
+                .withClaim("userId", userId)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .sign(algorithm);
