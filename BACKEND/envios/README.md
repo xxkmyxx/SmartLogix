@@ -2,25 +2,55 @@
 
 Gestión de envíos y seguimiento de transportistas para la plataforma SmartLogix.
 
+## Tecnologías
+
+- Java 17 + Spring Boot 3.5
+- Spring Data JPA + MySQL
+- Spring Security + JWT
+- JaCoCo (cobertura de pruebas)
+
 ## Requisitos
 
-- Java 17
+- Java 17+
 - Maven 3.8+
-- MySQL 8.0+
+- MySQL 8+
 
 ## Configuración
 
 Base de datos: `db_smartlogix_envios` (se crea automáticamente).
 
-En `src/main/resources/application.properties` ajusta las credenciales de MySQL si es necesario.
+Editar `src/main/resources/application.properties` si es necesario:
 
-Puerto: **8084**
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/db_smartlogix_envios
+spring.datasource.username=root
+spring.datasource.password=tu_password
+```
 
 ## Ejecución
 
 ```bash
 mvn spring-boot:run
 ```
+
+El servicio queda disponible en `http://localhost:8085`.
+
+## Endpoints principales
+
+| Método | Ruta | Descripción | Rol |
+|--------|------|-------------|-----|
+| POST | `/api/envios` | Crear envío y asignar transportista | ADMIN, OPERADOR |
+| GET | `/api/envios` | Listar todos los envíos | ADMIN, OPERADOR |
+| GET | `/api/envios/{id}` | Buscar envío por ID | ADMIN, OPERADOR, TRANSPORTISTA |
+| GET | `/api/envios/transportista/{id}` | Envíos asignados al transportista | ADMIN, OPERADOR, TRANSPORTISTA |
+| PUT | `/api/envios/{id}/estado?estado=X` | Actualizar estado del envío | TRANSPORTISTA |
+| GET | `/api/envios/public/pedido/{pedidoId}` | Estado del envío (público, para seguimiento) | — |
+
+### Estados del envío
+
+`PENDIENTE` → `RECOGIDO` → `EN_TRANSITO` → `ENTREGADO` | `CANCELADO`
+
+Al marcar un envío como `ENTREGADO`, el pedido asociado también se actualiza automáticamente.
 
 ## Pruebas
 
@@ -30,29 +60,16 @@ mvn test
 
 Reporte JaCoCo: `target/site/jacoco/index.html`
 
-## Endpoints principales
-
-| Método | Ruta | Descripción | Rol |
-|--------|------|-------------|-----|
-| POST | `/api/transportistas` | Registrar transportista | ADMIN |
-| GET | `/api/transportistas` | Listar transportistas | ADMIN, OPERADOR |
-| GET | `/api/transportistas/{id}` | Buscar transportista | ADMIN, OPERADOR, TRANSPORTISTA |
-| DELETE | `/api/transportistas/{id}` | Eliminar transportista | ADMIN |
-| POST | `/api/envios` | Crear envío | ADMIN, OPERADOR |
-| GET | `/api/envios` | Listar envíos | ADMIN, OPERADOR |
-| GET | `/api/envios/{id}` | Buscar envío por ID | ADMIN, OPERADOR, TRANSPORTISTA |
-| GET | `/api/envios/pedido/{pedidoId}` | Envío por pedido | ADMIN, OPERADOR, TRANSPORTISTA |
-| GET | `/api/envios/estado/{estado}` | Envíos por estado | ADMIN, OPERADOR |
-| GET | `/api/envios/transportista/{id}` | Envíos por transportista | ADMIN, OPERADOR, TRANSPORTISTA |
-| PUT | `/api/envios/{id}/estado?estado=X` | Actualizar estado | ADMIN, OPERADOR, TRANSPORTISTA |
-
-### Estados del envío
-`PENDIENTE` → `RECOGIDO` → `EN_TRANSITO` → `ENTREGADO` | `CANCELADO`
-
 ## Documentación Swagger
 
-Disponible en: `http://localhost:8084/swagger-ui.html`
+Disponible en: `http://localhost:8085/swagger-ui.html`
 
 ## Autenticación
 
 JWT Bearer Token (mismo secret que los demás microservicios).
+
+## Patrones de diseño aplicados
+
+- **Strategy**: `EnvioService` (interfaz) / `EnvioServiceImpl` (implementación).
+- **Builder**: construcción de `Envio` y `EnvioResponse` con Lombok `@Builder`.
+- **Repository**: acceso a datos abstraído mediante interfaces Spring Data JPA.

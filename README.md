@@ -38,7 +38,7 @@ FRONTEND (React :5173)
       BFF :8084
    /   |   |   \
 AUTH  INV  PED  ENV
-:8082 :8081 :8083 :8085
+:8081 :8082 :8083 :8085
 ```
 
 El frontend se comunica exclusivamente con el BFF (Backend for Frontend), que actúa como proxy hacia los microservicios y aplica Circuit Breaker (Resilience4j) en cada ruta.
@@ -49,8 +49,8 @@ El frontend se comunica exclusivamente con el BFF (Backend for Frontend), que ac
 
 | Servicio    | Puerto | Base de datos               | Descripción                                    |
 |-------------|--------|-----------------------------|------------------------------------------------|
-| auth        | 8082   | db_smartlogix_auth          | Autenticación, registro y gestión de usuarios  |
-| inventario  | 8081   | db_smartlogix_inventario    | Productos, stock y bodegas                     |
+| auth        | 8081   | db_smartlogix_auth          | Autenticación, registro y gestión de usuarios  |
+| inventario  | 8082   | db_smartlogix_inventario    | Productos, stock y bodegas                     |
 | pedidos     | 8083   | db_smartlogix_pedidos       | Gestión de pedidos y cambio de estados         |
 | envios      | 8085   | db_smartlogix_envios        | Gestión de envíos y seguimiento de transportistas |
 | bff         | 8084   | —                           | Gateway y orquestador hacia los microservicios |
@@ -60,11 +60,12 @@ El frontend se comunica exclusivamente con el BFF (Backend for Frontend), que ac
 
 ## Roles
 
-| Rol           | Permisos                                                        |
-|---------------|-----------------------------------------------------------------|
-| ADMIN         | Acceso total: usuarios, inventario, pedidos y envíos            |
-| OPERADOR      | Crear y gestionar pedidos y envíos, ver inventario              |
-| TRANSPORTISTA | Ver pedidos y envíos, actualizar estado de sus envíos asignados |
+| Rol           | Permisos                                                                  |
+|---------------|---------------------------------------------------------------------------|
+| ADMIN         | Acceso total: usuarios, inventario, pedidos y envíos                      |
+| OPERADOR      | Crear y gestionar pedidos y envíos, ver inventario                        |
+| TRANSPORTISTA | Ver pedidos y envíos asignados, actualizar estado de sus envíos           |
+| CLIENTE       | Acceso exclusivo al Portal B2B: catálogo, comprar, ver sus pedidos        |
 
 ---
 
@@ -107,6 +108,17 @@ Las bases de datos se crean automáticamente al levantar cada microservicio.
 
 ---
 
+## Portal B2B
+
+Los clientes acceden por `http://localhost:5173/portal` con su cuenta de rol `CLIENTE`.
+
+Funcionalidades disponibles:
+- **Catálogo**: ver productos con stock disponible y realizar pedidos
+- **Mis pedidos**: historial de pedidos con estado en tiempo real
+- **Seguimiento**: consulta pública de estado por número de pedido en `http://localhost:5173/seguimiento`
+
+---
+
 ## Pruebas unitarias
 
 ```bash
@@ -122,8 +134,8 @@ mvn test
 
 | Microservicio | URL                                    |
 |---------------|----------------------------------------|
-| Auth          | http://localhost:8082/swagger-ui.html  |
-| Inventario    | http://localhost:8081/swagger-ui.html  |
+| Auth          | http://localhost:8081/swagger-ui.html  |
+| Inventario    | http://localhost:8082/swagger-ui.html  |
 | Pedidos       | http://localhost:8083/swagger-ui.html  |
 | Envíos        | http://localhost:8085/swagger-ui.html  |
 | BFF           | http://localhost:8084/swagger-ui.html  |
